@@ -1,0 +1,69 @@
+logging:
+  pattern:
+    console: "%white(%d{HH:mm:ss.SSS}) %clr(%5p) [%clr(%20t){blue}] %clr(%40logger{39}){cyan} %clr(:){green} %m%n%wEx"
+  level:
+    org.nth: debug
+
+info:
+  app:
+    name: @project.name@
+    groupId: @project.groupId@
+    artifactId: @project.artifactId@
+    version: @project.version@
+
+server:
+  port: 8888
+
+management: # Management configuration
+  endpoint:
+    logfile:
+      external-file: ${logging.file.name:}.log
+    health:
+      show-details: always
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: "*"
+  httpexchanges:
+    recording:
+      include: REQUEST_HEADERS, RESPONSE_HEADERS, COOKIE_HEADERS, AUTHORIZATION_HEADER, PRINCIPAL, REMOTE_ADDRESS, SESSION_ID, TIME_TAKEN
+
+spring:
+  application:
+    name: ${info.app.artifactId}
+    instance-id: ${spring.application.name}-01
+  freemarker:
+    template-loader-path: classpath:/templates/
+    prefer-file-system-access: false
+  main:
+    banner-mode: log
+  boot:
+    admin:
+      context-path: /spring-boot-admin
+      ui:
+        external-views: 
+          - label: Eureka Dashboard
+            url: ${eureka.dashboard.path}
+            iframe: true
+
+eureka:
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.instance-id:${server.port}}
+    leaseRenewalIntervalInSeconds: 10
+    health-check-url-path: /actuator/health
+    metadata-map:
+      startup: ${random.int}
+      name: ${spring.application.name}
+      instance-id: ${spring.application.instance-id}
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    registry-fetch-interval-seconds: 5
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    enable-self-preservation: true
+  dashboard:
+    path: /eureka-dashboard
